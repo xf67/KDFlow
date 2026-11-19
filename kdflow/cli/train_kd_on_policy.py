@@ -132,7 +132,7 @@ def train(args):
         num_processors=args.data.preprocess_num_workers,
     )
     
-    sampler = DistributedSampler(train_dataset, num_replicas=1, rank=0, shuffle=True, seed=args.train.seed, drop_last=True)
+    sampler = DistributedSampler(train_dataset, num_replicas=1, rank=0, shuffle=os.environ.get("KDFLOW_SHUFFLE", "1") == "1", seed=args.train.seed, drop_last=True)
     train_dataloader = strategy.setup_dataloader(
         train_dataset,
         args.rollout.rollout_batch_size,

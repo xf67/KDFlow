@@ -435,18 +435,24 @@ class FSDP2Strategy(ABC):
     
     @torch.no_grad()
     def offload_model_params(self, model, empty_cache: bool = True):
+        if getattr(self.args.fsdp, "cpu_offload", False):  # [MOPD exp] FSDP2 CPUOffloadPolicy owns placement
+            return
         model.cpu()
         if empty_cache:
             torch.cuda.empty_cache()
             
     @torch.no_grad()
     def onload_model_params(self, model):
+        if getattr(self.args.fsdp, "cpu_offload", False):  # [MOPD exp] FSDP2 CPUOffloadPolicy owns placement
+            return
         device = torch.cuda.current_device()
         model.to(device)
         
     @torch.no_grad()
     def offload_optim_states(self, optimizer: Optimizer, empty_cache: bool = True):
         """offload optimizer states to CPU"""
+        if getattr(self.args.fsdp, "cpu_offload", False):  # [MOPD exp] FSDP2 CPUOffloadPolicy owns placement
+            return
         if not optimizer.state:
             return
         for param_group in optimizer.param_groups:
@@ -461,6 +467,8 @@ class FSDP2Strategy(ABC):
     @torch.no_grad()
     def onload_optim_states(self, optimizer: Optimizer):
         """Move optimizer states to GPU."""
+        if getattr(self.args.fsdp, "cpu_offload", False):  # [MOPD exp] FSDP2 CPUOffloadPolicy owns placement
+            return
         device = torch.cuda.current_device()
         if not optimizer.state:
             return
